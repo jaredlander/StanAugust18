@@ -4,8 +4,7 @@
 # Live Training
 
 This is an empty repo to initialize an R project for training courses
-organized by [Lander
-Anlytics](https://www.safaribooksonline.com/live-training/courses/machine-learning-with-r/0636920194408/).
+organized by [Lander Analytics](www.landeranalytics.com).
 
 Please follow all instructions to set up your environment for the
 training.
@@ -19,18 +18,9 @@ the necessary packages.
 
 <pre class='sourceCode r'><code class='sourceCode r'>
 packages <- c(
-    'bayesplot', 
-    'coefplot', 
-    'ggplot2', 
-    'ggthemes', 
     'here', 
-    'jsonlite', 
-    'loo', 
-    'lubridate', 
-    'reshape2', 
+    'knitr', 
     'rmarkdown', 
-    'rprojroot', 
-    'shinystan', 
     'tidyverse', 
     'usethis'
 )
@@ -48,17 +38,12 @@ such as `yes`, `yeah`,
 etc.
 
 ``` r
-newProject <- usethis::use_course('https://github.com/jaredlander/StanAugust18/archive/master.zip')
+newProject <- usethis::use_course('https://github.com/jaredlander/LearningR/archive/master.zip')
 ```
 
-After that runs successfully you will have a new folder holding the R
-project that looks like this (the name in the image may be different).
-
-<img src="images/ProjectFolder.png" width="50%" />
-
 After running this code you will be in an RStudio Project called
-StanAugust18. You can see this in the top right of RStudio (the name in
-the image may be different).
+LearningR. You can see this in the top right of RStudio (the name in the
+image may be different).
 
 ![](images/ProjectCorner.png)<!-- -->
 
@@ -75,3 +60,9 @@ preceding code.
 ``` r
 source('prep/DownloadData.r')
 ```
+
+# Installing Stan
+
+`stan` takes a little extra care to install, sp please follow the
+instructions
+<https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#installation>.
