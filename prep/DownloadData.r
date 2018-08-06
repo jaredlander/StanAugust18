@@ -13,3 +13,9 @@ download.file(
 	destfile=file.path(dataDir, 'movie_data.rds'),
 	mode='wb')
 
+# pest_data.rds
+download.file(
+	'https://query.data.world/s/rnujqu4scdabvtpi4vgjrir34t3gvw',
+	destfile=file.path(dataDir, 'pest_data.rds'),
+	mode='wb')
+
