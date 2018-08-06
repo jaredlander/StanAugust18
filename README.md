@@ -75,3 +75,19 @@ source('prep/DownloadData.r')
 `stan` takes a little extra care to install, so please follow the
 instructions
 <https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#installation>.
+
+
+## Compiler warnings
+
+Run this to create a MAKEVARS file: 
+
+```r
+dotR <- file.path(Sys.getenv("HOME"), ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+MAKEVARS <- file.path(dotR, "Makevars")
+if (!file.exists(MAKEVARS)) file.create(MAKEVARS)
+```
+
+Then see instructions at 
+
+http://mc-stan.org/misc/warnings#compiler-warnings
