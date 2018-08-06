@@ -40,7 +40,7 @@ City. They explain that they are concerned about the number of roach complaints
 that they receive from their buildings. Previously they have offered monthly
 visits from a pest inspector as a solution to this problem. While this is the
 default solution of many property managers in NYC, the tenants are rarely home
-when the inpector visits, and so the manager reasons that this is a relatively
+when the inspector visits, and so the manager reasons that this is a relatively
 expensive solution that is currently not very effective.
 
 One alternative to this problem is to deploy long term bait stations. In this
@@ -82,7 +82,7 @@ $$
 
 The property manager would also, if possible, like to learn how these results 
 generalize to buildings they haven't treated so they can understand the
-potential costs of pest control at buildings they are aquiring as well as for
+potential costs of pest control at buildings they are acquiring as well as for
 the rest of their building portfolio.
 
 As the property manager has complete control over the number of traps set, the
@@ -92,7 +92,7 @@ of the number of traps.
 
 ## The data
 
-The data provided to us is in a file called `building_data_20180724.RDS`. Let's
+The data provided to us is in a file called `pest_data.RDS`. Let's
 load the data and see what the structure is:
 
 ```{r load-data}
@@ -268,7 +268,7 @@ true_alpha_beta <- c(samps_dgp$alpha, samps_dgp$beta)
 mcmc_recover_hist(posterior_alpha_beta, true = true_alpha_beta)
 ```
 
-It's possible we dont' do a great job recovering the parameters here simply
+It's possible we don't do a great job recovering the parameters here simply
 because we're simulating so few observations that the posterior uncertainty
 remains rather large. If we did the simulation with many more observations the
 parameters would be estimated much more precisely.
@@ -302,7 +302,7 @@ Now we have seen that we can sensibly recover the parameters from simulated data
 so we have confidence that our model is correctly specified and that our Stan
 program doesn't have any bugs in it. 
 
-Next we can use this model with the real data that we observerd and look at how 
+Next we can use this model with the real data that we observed and look at how 
 the model fits the data. We'll again pass the data to RStan as a list:
 
 ```{r stan-data}
