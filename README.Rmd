@@ -34,7 +34,7 @@ organizer <- params$organizer
 packages <- sort(params$packages)
 ```
 
-# Live Training
+# Stan Training
 
 This is an empty repo to initialize an R project for training courses organized by `r organizer`.
 
@@ -51,7 +51,7 @@ install.packages(packages)
 
 # Project Structure
 
-Making use of RStudio projects greatly improves the user experience. To facilitate this users should run the following code which will recreate this project on their computer. Be sure to select the positive prompts such as `yes`, `yeah`, etc.
+Making use of RStudio projects greatly improves the user experience. To facilitate this, users should run the following code which will recreate this project on their computer. Be sure to select the positive prompts such as `yes`, `yeah`, etc.
 
 ```r
 newProject <- usethis::use_course('https://github.com/jaredlander/`r className`/archive/master.zip')
@@ -65,7 +65,7 @@ knitr::include_graphics('images/ProjectCorner.png')
 
 # Data
 
-Data for the class is kept at [data.world](https://data.world/landeranalytics/training). Run the following code to download all the data. This requires that you are using an [RStudio Project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-Projects) setup exactly like this repo, which is done if you followed the preceding code.
+Data for the class is kept at [data.world](https://data.world/landeranalytics/standata). Run the following code to download all the data. This requires that you are using an [RStudio Project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-Projects) setup exactly like this repo, which is done if you followed the preceding code.
 
 ```{r source-data-file,eval=FALSE}
 source('prep/DownloadData.r')
@@ -73,4 +73,4 @@ source('prep/DownloadData.r')
 
 # Installing Stan
 
-`stan` takes a little extra care to install, sp please follow the instructions https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#installation.
+`stan` takes a little extra care to install, so please follow the instructions https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#installation.

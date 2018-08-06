@@ -1,10 +1,10 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Live Training
+# Stan Training
 
 This is an empty repo to initialize an R project for training courses
-organized by [Lander Analytics](www.landeranalytics.com).
+organized by Lander Analytics.
 
 Please follow all instructions to set up your environment for the
 training.
@@ -18,9 +18,18 @@ the necessary packages.
 
 <pre class='sourceCode r'><code class='sourceCode r'>
 packages <- c(
+    'bayesplot', 
+    'coefplot', 
+    'ggplot2', 
+    'ggthemes', 
     'here', 
-    'knitr', 
+    'jsonlite', 
+    'loo', 
+    'lubridate', 
+    'reshape2', 
     'rmarkdown', 
+    'rprojroot', 
+    'shinystan', 
     'tidyverse', 
     'usethis'
 )
@@ -32,25 +41,25 @@ install.packages(packages)
 # Project Structure
 
 Making use of RStudio projects greatly improves the user experience. To
-facilitate this users should run the following code which will recreate
+facilitate this, users should run the following code which will recreate
 this project on their computer. Be sure to select the positive prompts
 such as `yes`, `yeah`,
 etc.
 
 ``` r
-newProject <- usethis::use_course('https://github.com/jaredlander/LearningR/archive/master.zip')
+newProject <- usethis::use_course('https://github.com/jaredlander/StanAugust18/archive/master.zip')
 ```
 
 After running this code you will be in an RStudio Project called
-LearningR. You can see this in the top right of RStudio (the name in the
-image may be different).
+StanAugust18. You can see this in the top right of RStudio (the name in
+the image may be different).
 
 ![](images/ProjectCorner.png)<!-- -->
 
 # Data
 
 Data for the class is kept at
-[data.world](https://data.world/landeranalytics/training). Run the
+[data.world](https://data.world/landeranalytics/standata). Run the
 following code to download all the data. This requires that you are
 using an [RStudio
 Project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-Projects)
@@ -63,6 +72,6 @@ source('prep/DownloadData.r')
 
 # Installing Stan
 
-`stan` takes a little extra care to install, sp please follow the
+`stan` takes a little extra care to install, so please follow the
 instructions
 <https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#installation>.
