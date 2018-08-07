@@ -95,4 +95,4 @@ http://mc-stan.org/misc/warnings#compiler-warnings
 
 # MCMC interactive demo
 
-https://chi-feng.github.io/mcmc-demo/app.htm
+https://chi-feng.github.io/mcmc-demo/app.html
