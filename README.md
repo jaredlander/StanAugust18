@@ -91,3 +91,8 @@ if (!file.exists(MAKEVARS)) file.create(MAKEVARS)
 Then see instructions at 
 
 http://mc-stan.org/misc/warnings#compiler-warnings
+
+
+# MCMC interactive demo
+
+https://chi-feng.github.io/mcmc-demo/app.htm
