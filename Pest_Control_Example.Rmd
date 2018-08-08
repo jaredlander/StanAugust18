@@ -1089,3 +1089,319 @@ Rootogram:
 ppc_rootogram(stan_dat_hier$complaints, yrep = y_rep)
 ```
 
+
+### Varying intercepts _and_ varying slopes
+
+We've gotten some new data that'll let us explore how to expand
+the model a bit more with varying slopes along with varying intercepts
+and time-varying intercepts.
+
+```{r}
+stan_dat_hier <- readRDS('data/pest_data_longer_stan_dat.RDS')
+```
+
+Perhaps if the levels of complaints
+differ by building, the coefficient for the effect of traps on building does
+too. We can add this to our model and observe the fit.
+
+$$
+\text{complaints}_{b,t} \sim \text{Neg-Binomial}(\lambda_{b,t}, \phi)  \\
+\lambda_{b,t} = \exp{(\eta_{b,t})}\\
+\eta_{b,t} = \alpha_b + \kappa_b \, \texttt{traps}_{b,t} \\
+\mu_b \sim \text{Normal}(\alpha + \texttt{building_data} \, \zeta, \sigma_{\mu}) \\
+\kappa_b \sim \text{Normal}(\beta + \texttt{building_data} \, \gamma, \sigma_{\kappa})
+$$
+
+Let's compile the model.
+
+```{r comp-NB-hier-slopes, cache=TRUE, results="hide", message=FALSE}
+comp_model_NB_hier_slopes <- stan_model('stan_programs/hier_NB_regression_ncp_slopes_mod.stan')
+```
+
+Fit the model to data and extract the posterior draws needed for 
+our posterior predictive checks.
+
+```{r run-NB-hier-slopes}
+fitted_model_NB_hier_slopes <- 
+  sampling(
+    comp_model_NB_hier_slopes,
+    data = stan_dat_hier,
+    chains = 4, cores = 4
+  )
+```
+
+To see if the model infers building-to-building differences in, we can plot a
+histogram of our marginal posterior distribution for `sigma_kappa`.
+
+```{r}
+mcmc_hist(
+  as.matrix(fitted_model_NB_hier_slopes, pars = "sigma_kappa"), 
+  binwidth = 0.005
+)
+```
+
+```{r}
+mcmc_hist(
+  as.matrix(fitted_model_NB_hier_slopes, pars = "beta"), 
+  binwidth = 0.005
+)
+```
+
+While the model can't specifically rule out zero from the posterior, it does have mass at small
+non-zero numbers, so we should leave in the hierarchy over $\texttt{kappa}$. Plotting the marginal
+data density again, we can see the model still looks well calibrated.
+
+```{r ppc-full-hier-slopes}
+y_rep <- as.matrix(fitted_model_NB_hier_slopes, pars = "y_rep")
+ppc_dens_overlay(
+  y = stan_dat_hier$complaints, 
+  yrep = y_rep[1:200,]
+)
+```
+
+
+## Time varying effects and structured priors
+
+We haven't looked at how cockroach complaints change over time. Let's look
+at whether there's any pattern over time.
+
+```{r ppc-group_max-hier-slopes-mean-by-mo}
+ppc_stat_grouped(
+  y = stan_dat_hier$complaints, 
+  yrep = y_rep, 
+  group = stan_dat_hier$mo_idx, 
+  stat = 'mean'
+) + xlim(0, 11)
+```
+
+We might augment our model with a log-additive monthly effect, $\texttt{mo}_t$. 
+
+$$
+\eta_{b,t} = \mu_b + \kappa_b \, \texttt{traps}_{b,t} + \texttt{mo}_t
+$$
+
+We have complete freedom over how to specify the prior for $\texttt{mo}_t$. There are 
+several competing factors for how the number of complaints might change over time. It makes
+sense that there might be more roaches in the environment during the summer, but we might 
+also expect that there is more roach control in the summer as well. Given that we're 
+modeling complaints, maybe after the first sighting of roaches in a building, residents are
+more vigilant, and thus complaints of roaches would increase.
+
+This can be a motivation for using an autoregressive prior for our monthly effects. The model
+is as follows:
+
+$$
+\texttt{mo}_t \sim \text{Normal}(\rho \, \texttt{mo}_{t-1}, \sigma_\texttt{mo}) \\
+\equiv \\
+\texttt{mo}_t = \rho \, \texttt{mo}_{t-1} +\epsilon_t , \quad \epsilon_t \sim \text{Normal}(0, \sigma_\texttt{mo}) \\
+\quad \rho \in [-1,1]
+$$
+
+This equation says that the monthly effect in month $t$ is directly related to
+the last month's monthly effect. Given the description of the process above,
+it seems like there could be either positive or negative associations between
+the months, but there should be a bit more weight placed on positive 
+$\rho$s, so we'll put an informative prior that pushes the parameter $\rho$ towards
+0.5.
+
+Before we write our prior, however, we have a problem: Stan doesn't implement any densities
+that have support on $[-1,1]$. We can use variable transformation of a raw variable
+defined on $[0,1]$ to to give us a density on $[-1,1]$. Specifically,
+
+$$
+\rho_{\text{raw}} \in [0, 1] \\
+\rho = 2 \times \rho_{\text{raw}} - 1
+$$
+
+Then we can put a beta prior on $\rho_\text{raw}$ to push our estimate towards 0.5.
+
+One further wrinkle is that we have a prior for $\texttt{mo}_t$ that depends on
+$\texttt{mo}_{t-1}$. What should we do about the prior for $\texttt{mo}_1$? We
+need to work out the marginal distribution of the first observation. We can use
+the fact that AR models are stationary, so $\text{Var}(\texttt{mo}_t) = \text{Var}(\texttt{mo}_{t-1})$
+and $\mathbb{E}(\texttt{mo}_t) = \mathbb{E}(\texttt{mo}_{t-1})$.
+
+$$
+\text{Var}(\texttt{mo}_1) = \text{Var}(\rho \texttt{mo}_{0} + \epsilon_1) \\
+\text{Var}(\texttt{mo}_1) = \text{Var}(\rho \texttt{mo}_{0}) + \text{Var}(\epsilon_1) \\
+\text{Var}(\texttt{mo}_1)= \rho^2 \text{Var}( \texttt{mo}_{0}) + \sigma_\texttt{mo}^2 \\
+\text{Var}(\texttt{mo}_1)= \rho^2 \text{Var}( \texttt{mo}_{1})  + \sigma_\texttt{mo}^2 \\
+\text{Var}(\texttt{mo}_1) = \frac{\sigma_\texttt{mo}^2}{1 - \rho^2}
+$$
+
+$$
+\mathbb{E}(\texttt{mo}_1) = \mathbb{E}(\rho \, \texttt{mo}_{0}) + 0 \\
+\mathbb{E}(\texttt{mo}_1) = \rho \, \mathbb{E}(\texttt{mo}_{1})
+$$
+which for $\rho \neq 0$ yields $\mathbb{E}(\texttt{mo}_{1}) = 0$. So, 
+
+$$
+\texttt{mo}_1 \sim \text{Normal}\left(0, \frac{\sigma_\texttt{mo}}{\sqrt{1 - \rho^2}}\right) \\
+\texttt{mo}_t \sim \text{Normal}\left(\rho \, \texttt{mo}_{t-1}, \sigma_\texttt{mo}\right) \forall t > 1
+$$
+
+```{r comp-NB-hier-mos, cache=TRUE, results="hide", message=FALSE}
+comp_model_NB_hier_mos <- stan_model('stan_programs/hier_NB_regression_ncp_slopes_mod_mos.stan')
+```
+
+```{r run-NB-hier-slopes-mos}
+fitted_model_NB_hier_mos <- sampling(comp_model_NB_hier_mos, data = stan_dat_hier, chains = 4, cores = 4)
+```
+
+In the interest of brevity, we won't go on expanding the model, though we certainly could.
+What other information would help us understand the data generating process better? What
+other aspects of the data generating process might we want to capture that we're not 
+capturing now?
+
+As usual, we run through our posterior predictive checks.
+
+```{r ppc-full-hier-mos}
+y_rep <- as.matrix(fitted_model_NB_hier_mos, pars = "y_rep")
+ppc_dens_overlay(
+  y = stan_dat_hier$complaints, 
+  yrep = y_rep[1:200,]
+)
+```
+
+```{r}
+ppc_stat_grouped(
+  y = stan_dat_hier$complaints, 
+  yrep = y_rep, 
+  group = stan_dat_hier$mo_idx, 
+  stat = 'mean'
+) 
+```
+
+As we can see, our monthly random intercept has captured a monthly
+pattern across all the buildings.
+
+```{r}
+gen_beta <- function(x) {
+  alpha <- 10
+  bet <- 5
+  a <- -1
+  c <- 1
+  lp <- (alpha - 1) * log(x - a) + (bet - 1) * log(c - x) - (alpha + bet - 1) * log(c - a) - lbeta(alpha, bet)
+  return(exp(lp))
+}
+mcmc_hist(
+  as.matrix(fitted_model_NB_hier_mos, pars = "rho"), freq=F,
+  binwidth = 0.01
+) + overlay_function(fun = gen_beta)
+```
+
+
+```{r}
+ppc_intervals(
+  y = stan_dat_hier$complaints, 
+  yrep = y_rep,
+  x = stan_dat_hier$traps
+) + 
+  labs(x = "Number of traps", y = "Number of complaints")
+```
+
+It looks as if our model finally generates a reasonable posterior predictive
+distribution for all numbers of traps, and appropriately captures the tails of the 
+date generating process.
+
+## Using our model: Cost forecasts
+
+Our model seems to be fitting well, so now we will go ahead and use the model to
+help us make a decision about how many traps to put in our buildings. We'll make
+a forecast for 6 months forward.
+
+```{r comp-rev, cache=TRUE, results="hide", message=FALSE}
+comp_rev <- stan_model('stan_programs/hier_NB_regression_ncp_slopes_mod_mos_predict.stan')
+```
+
+In our generated quantities block, we need access to the building-level exposure, but
+we've only provided the model an observational-level exposure. We create that below,
+in addition to the number of months we wish to simulate complaints for.
+
+
+Another important input to the revenue model is how much revenue is lost to each
+complaint. The client has a policy that for every 10 complaints, they'll call an
+exterminator costing the client \$100, so that'll amount to \$10 per complaint.
+
+```{r run-NB-hier-rev}
+rev_model <- sampling(comp_rev, data = stan_dat_hier, chains = 4, cores = 4, iter = 1000)
+```
+
+Below we've generated our revenue curves for the buildings. These charts will
+give us precise quantification of our uncertainty around our revenue projections
+at any number of traps for each building.
+
+A key input to our analysis will be the cost of installing bait stations. We're 
+simulating the number of complaints we receive over the course of a year, so we 
+need to understand the cost associated with maintaining each bait station over 
+the course of a year. There's the cost attributed to the raw bait station, which
+is the plastic housing and the bait material, a peanut-buttery substance that's 
+injected with insecticide. The cost of maintaining one bait station for a year 
+plus monthly replenishment of the bait material is about \$20. 
+
+```{r materials-cost-formulation}
+N_traps <- 20
+costs <- 10*(1:N_traps) 
+```
+
+We'll also need labor for maintaining the bait stations. If there are fewer than
+5 traps, our in-house maintenance staff can manage the stations (about 1 hour
+per month of work at \$20/hour), but above 5 we need to hire outside pest
+control to help out. They're a bit more expensive, so we've put their cost at
+\$30 / hour. Each 5 traps should require an extra person-hour of work, so that's
+factored in as well. The marginal person-person hours above five traps are at
+the higher pest-control-labor rate.
+
+```{r labor-cost-formulation}
+costs <- costs + (1:N_traps < 5)*(6*20) + (1:N_traps >= 5 & 1:N_traps < 10)*(6*(20 + 30)) + (1:N_traps >= 10 & 1:N_traps < 15)*(6*(20 + 2 * 30)) +  + (1:N_traps >= 15) * (6*(20 + 3 * 30))
+```
+
+Now we build the revenue curves.
+
+```{r rev-curves, fig.width = 6, fig.height = 8}
+# extract as a list for convenience below
+samps_rev <- rstan::extract(rev_model)
+tot_profit <- sweep(samps_rev$rev_rep_potential,c(3),STATS = costs, FUN = '-')
+mean_profit <- apply(tot_profit,c(2,3),median)
+lower_profit <- apply(tot_profit,c(2,3),quantile,0.25)
+upper_profit <- apply(tot_profit,c(2,3),quantile,0.75)
+profit_df <- data.frame(profit = as.vector(t(mean_profit)), lower = as.vector(t(lower_profit)),
+                     upper = as.vector(t(upper_profit)),
+                     traps = rep(1:N_traps,N_buildings),
+                     building_id = as.vector(sapply(1:N_buildings,rep,N_traps)))
+ggplot(data = profit_df, aes(x = traps, y = profit)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill="grey70") + geom_line() +
+  facet_wrap(~ building_id, scales = 'free_y', ncol = 2)
+```
+
+We can can see that the optimal number of bait stations differs by building.
+How would we build a revenue curve for a new building?
+
+Left as an exercise for the reader: 
+
+Let's say our utility function is revenue. If we wanted to maximize expected
+revenue, we can take expectations at each station count for each building, and
+choose the trap numbers that maximizes expected revenue. This will be called a
+maximum revenue strategy.
+
+How can we generate the distribution of portfolio revenue (i.e. the sum of 
+revenue across all the buildings) under the maximum revenue strategy from the
+posterior draws of $\texttt{rev_rep_potential}$ we already have from
+$\texttt{samps_rev}$?
+
+
+# Useful resources: 
+
+[ADD MORE TO THIS]
+
+* [The Stan Forums](http://discourse.mc-stan.org/)
+* [Stan Language Documentation](http://mc-stan.org/users/documentation/)
+* [Stan Case Studies](http://mc-stan.org/users/documentation/case-studies)
+* **rstan** [vignettes](http://mc-stan.org/rstan/articles)
+* **bayesplot** tutorial [vignettes](http://mc-stan.org/bayesplot/articles)
+* **loo** tutorial [vignettes](http://mc-stan.org/loo/articles)
+* [Interactive MCMC demos](https://chi-feng.github.io/mcmc-demo/)
+* Paper: [_A Conceptual Introduction to Hamiltonian Monte Carlo_](https://arxiv.org/abs/1701.02434)
+* Paper: [_Visualization in Bayesian Workflow_](https://github.com/jgabry/bayes-vis-paper#readme)
+
+
