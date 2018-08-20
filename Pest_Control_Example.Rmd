@@ -1756,13 +1756,13 @@ $$
 
 ### Compiling the GP model
 
-```{r comp-NB-hier-mos, cache=TRUE, results="hide", message=FALSE}
+```{r comp-NB-hier-gp, cache=TRUE, results="hide", message=FALSE}
 comp_model_NB_hier_gp <- stan_model('stan_programs/hier_NB_regression_ncp_slopes_mod_mos_gp.stan')
 ```
 
 ### Fitting the GP model to data
 
-```{r run-NB-hier-slopes-mos}
+```{r run-NB-hier-gp}
 fitted_model_NB_hier_gp <- sampling(comp_model_NB_hier_gp, data = stan_dat_hier, chains = 4, cores = 4, control = list(adapt_delta = 0.9))
 samps_gp <- rstan::extract(fitted_model_NB_hier_gp)
 ```
