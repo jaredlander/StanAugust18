@@ -309,7 +309,7 @@ ppc_rootogram(stan_dat_fake$complaints, yrep = y_rep)
 
 ### Fit with real data 
 
-To fit the model to real data we'll first create a list to pass to Stan using
+To fit the model to the actual observed data we'll first create a list to pass to Stan using
 the variables in the `pest_data` data frame:
 
 ```{r stan-data}
