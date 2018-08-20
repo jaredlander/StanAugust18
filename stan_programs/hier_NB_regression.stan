@@ -29,22 +29,19 @@ parameters {
   real<lower=0> inv_phi;   // 1/phi (easier to think about prior for 1/phi instead of phi)
   real beta;               // coefficient on traps
   
-  vector[J] mu_raw;        // N(0,1) params for non-centered parameterization of building intercepts 
+  vector[J] mu;            // buildings-specific intercepts
   real<lower=0> sigma_mu;  // sd of building-specific intercepts
   real alpha;              // intercept of model for mu
   vector[K] zeta;          // coefficients on building-level predictors in model for mu 
 }
 transformed parameters {
   real phi = inv(inv_phi);
-  
-  // non-centered parameterization
-  vector[J] mu = alpha + building_data * zeta + sigma_mu * mu_raw;
 }
 model {
-  mu_raw ~ normal(0, 1);   // implies mu ~ normal(alpha + building_data * zeta, sigma_mu)
+  mu ~ normal(alpha + building_data * zeta, sigma_mu);
   sigma_mu ~ normal(0, 1);
   alpha ~ normal(log(4), 1);
-  zeta ~ normal(0, 1);
+  zeta ~ normal(0, 1);  // could also use informative priors on the different elements
   beta ~ normal(-0.25, 1);
   inv_phi ~ normal(0, 1);
   
