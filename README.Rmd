@@ -1,9 +1,10 @@
 ---
 output: github_document
 params:
-    className: LearningR
+    className: StanAugust18
     organizer: "[Lander Analytics](www.landeranalytics.com)"
-    packages: !r c('here', 'knitr', 'rmarkdown', 'tidyverse', 'usethis')
+    packages: !r c('bayesplot', 'ggplot2', 'ggthemes', 'here', 'jsonlite', 'loo', 
+                    'lubridate', 'rmarkdown', 'rprojroot', 'shinystan', 'tidyverse', 'usethis')
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -36,13 +37,12 @@ packages <- sort(params$packages)
 
 # Stan Training
 
-This is an empty repo to initialize an R project for training courses organized by `r organizer`.
-
 Please follow all instructions to set up your environment for the training.
 
 # Packages
 
-To get started run the following code to install the latest version of the necessary packages.
+To get started run the following code to install the latest version of the necessary packages, 
+except for Stan which we'll install afterwards.
 
 <div class='sourceCode'><pre class='sourceCode r'><code class='sourceCode r'>
 packages <- `r sprintf("c(\n\t'%s'\n)", paste(packages, collapse="', \n\t'"))`
@@ -74,3 +74,4 @@ source('prep/DownloadData.r')
 # Installing Stan
 
 `stan` takes a little extra care to install, so please follow the instructions https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started#installation.
+
