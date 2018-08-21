@@ -35,14 +35,26 @@ organizer <- params$organizer
 packages <- sort(params$packages)
 ```
 
-# Stan Training
+# Stan Training (August 2018, NYC)
+
+**Organizer:** Lander Analytics        
+**Host:** eBay     
+**Instructors:** Stan developers [Jonah Gabry](https://jgabry.github.io/) and [Rob Trangucci](https://github.com/rtrangucci)         
 
 
-* The main file is `Pest_Control_Example.Rmd`
-* The two data files used are in the `data` directory
-* The Stan programs we wrote together during the course are in the `stan_programs` directory
-* PDF versions of the slides are the `slides` directory
-* The `reading-list.md` and `reading-list.html` files are a reading list compiled based on topics that were asked about in the class
+* Repository overview:
+    * The main file is `Pest_Control_Example.Rmd`
+    * The two data files used are in the `data` directory
+    * The Stan programs we wrote together during the course are in the `stan_programs` directory
+    * PDF versions of the slides are the `slides` directory
+    * The `reading-list.md` and `reading-list.html` files are a reading list compiled based on topics that were asked about in the class
+
+
+**UPDATE:** After the class we added the reading list and also made a few
+changes to the other files. We edited the Stan code to add a few more code
+comments and make the programs a bit more organized, and we edited the markdown
+document to clarify a few parts better, remove some unneeded fluff, and add a
+Gaussian process section at the end that goes further than we did in class.
 
 
 # Setup for course
